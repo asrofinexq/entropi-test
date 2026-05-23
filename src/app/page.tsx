@@ -46,7 +46,7 @@ export default function Dashboard() {
         {/* Header & Fitur Pencarian */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900">Dasbor Penjual Entropi</h1>
+            <h1 className="text-2xl font-extrabold text-slate-900">Dasbor Penjual Entropi test</h1>
             <p className="text-sm text-slate-500">Pantau status transaksi dan buku besar secara real-time.</p>
           </div>
           

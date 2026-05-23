@@ -1,13 +1,40 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model EventLog {
+  id             String   @id @default(uuid())
+  aggregateId    String
+  eventType      String
+  payload        Json     
+  version        Int
+  timestamp      DateTime @default(now())
+  idempotencyKey String   @unique 
+
+  @@unique([aggregateId, version]) 
+  @@index([aggregateId, version])  
+  @@index([eventType])             
+  @@index([timestamp])             
+
+  @@map("event_logs")
+}
+
+model Ledger {
+  id        String   @id @default(uuid())
+  orderId   String
+  account   String
+  debit     Decimal? @db.Decimal(18, 4) 
+  credit    Decimal? @db.Decimal(18, 4) 
+  timestamp DateTime @default(now())
+
+  @@map("ledgers")
 }

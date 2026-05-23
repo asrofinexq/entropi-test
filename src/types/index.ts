@@ -7,6 +7,7 @@ export interface EventLog {
   payload: Record<string, string | undefined>;
   version: number;
   timestamp: string;
+  idempotencyKey: string;
 }
 
 export interface LedgerEntry {

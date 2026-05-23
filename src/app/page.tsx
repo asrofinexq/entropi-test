@@ -29,8 +29,12 @@ export default function Dashboard() {
         const dataLedgers = await resLedgers.json();
         setLedgers(dataLedgers);
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Terjadi kesalahan yang tidak diketahui.');
+      }
       setEvents([]);
       setLedgers([]);
     } finally {

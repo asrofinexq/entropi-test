@@ -18,13 +18,13 @@ export default function Dashboard() {
     setError('');
     try {
       // 1. Mengambil riwayat kejadian (Event Sourcing)
-      const resEvents = await fetch(`http://localhost:8080/orders/${id}`);
+      const resEvents = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${id}`);
       if (!resEvents.ok) throw new Error('Pesanan tidak ditemukan di database.');
       const dataEvents = await resEvents.json();
       setEvents(dataEvents);
 
       // 2. Mengambil riwayat buku besar (Ledger)
-      const resLedgers = await fetch(`http://localhost:8080/orders/${id}/ledger`);
+      const resLedgers = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${id}/ledger`);
       if (resLedgers.ok) {
         const dataLedgers = await resLedgers.json();
         setLedgers(dataLedgers);

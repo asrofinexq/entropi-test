@@ -146,8 +146,10 @@ fastify.post('/settle', async (request, reply) => {
 
 const start = async () => {
   try {
-    await fastify.listen({ port: 8080, host: '0.0.0.0' });
-    console.log('Server Backend berjalan di http://localhost:8080');
+    // Railway akan memberikan port secara dinamis melalui process.env.PORT
+    const port = Number(process.env.PORT) || 8080;
+    await fastify.listen({ port: port, host: '0.0.0.0' });
+    console.log(`Server Backend berjalan di port ${port}`);
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);

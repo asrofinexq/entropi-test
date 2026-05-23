@@ -42,11 +42,13 @@ export async function recordPayment(orderId: string, amount: string, stripeId: s
   const decimalAmount = new Prisma.Decimal(amount);
 
   return await prisma.$transaction(async (tx) => {
+    // 1. Cek Idempotensi (Permintaan yang persis sama)
     const existingEvent = await tx.eventLog.findUnique({
       where: { idempotencyKey }
     });
     if (existingEvent) return existingEvent;
 
+    // 2. Cari versi terakhir dari pesanan ini
     const lastEvent = await tx.eventLog.findFirst({
       where: { aggregateId: orderId },
       orderBy: { version: 'desc' }
@@ -54,6 +56,20 @@ export async function recordPayment(orderId: string, amount: string, stripeId: s
 
     if (!lastEvent) throw new Error('Pesanan tidak ditemukan');
 
+    // ==========================================
+    // PERBAIKAN: DISIPLIN STATE MACHINE 
+    // ==========================================
+    // Mencegah pembayaran berulang pada pesanan yang sudah lunas
+    const alreadyPaid = await tx.eventLog.findFirst({
+      where: { aggregateId: orderId, eventType: 'PaymentConfirmed' }
+    });
+    
+    if (alreadyPaid) {
+      throw new Error('StateConflict: Pesanan ini sudah berhasil dibayar sebelumnya');
+    }
+    // ==========================================
+
+    // 3. Catat EventLog (PaymentConfirmed)
     const event = await tx.eventLog.create({
       data: {
         aggregateId: orderId,
@@ -64,10 +80,12 @@ export async function recordPayment(orderId: string, amount: string, stripeId: s
       }
     });
 
+    // 4. Catat Buku Besar: DEBIT payment_received
     await tx.ledger.create({
       data: { orderId, account: 'payment_received', debit: decimalAmount, credit: null }
     });
 
+    // 5. Catat Buku Besar: CREDIT order_balance
     await tx.ledger.create({
       data: { orderId, account: 'order_balance', debit: null, credit: decimalAmount }
     });

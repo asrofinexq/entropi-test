@@ -4,13 +4,7 @@ export interface EventLog {
   id: string;
   aggregateId: string;
   eventType: 'OrderCreated' | 'PaymentConfirmed' | 'FeeCalculated' | 'SettlementProcessed';
-  payload: {
-    amount?: string;
-    feeAmount?: string;
-    chargeId?: string;
-    date?: string;
-    [key: string]: string | undefined;
-  };
+  payload: Record<string, string | undefined>;
   version: number;
   timestamp: string;
 }

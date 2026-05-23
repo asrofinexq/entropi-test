@@ -30,11 +30,8 @@ export default function Dashboard() {
         setLedgers(dataLedgers);
       }
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('Terjadi kesalahan yang tidak diketahui.');
-      }
+      const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan yang tidak diketahui.';
+      setError(errorMessage);
       setEvents([]);
       setLedgers([]);
     } finally {

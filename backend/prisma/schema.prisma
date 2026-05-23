@@ -1,40 +1,37 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model EventLog {
   id             String   @id @default(uuid())
-  aggregateId    String
-  eventType      String
-  payload        Json     
-  version        Int
+  aggregateId    String   // ID pesanan yang menjadi subjek kejadian ini
+  eventType      String   // Contoh: "OrderCreated", "PaymentProcessing", dll.
+  payload        Json     // Menyimpan data tambahan (termasuk nilai Decimal sebagai string)
+  version        Int      // Dokumen menanyakan mengapa version menggunakan integer
   timestamp      DateTime @default(now())
-  idempotencyKey String   @unique 
+  idempotencyKey String   @unique // Wajib unik untuk mencegah pemrosesan ganda
 
-  @@unique([aggregateId, version]) 
-  @@index([aggregateId, version])  
-  @@index([eventType])             
-  @@index([timestamp])             
-
-  @@map("event_logs")
+  @@unique([aggregateId, version]) // Constraint: Kombinasi aggregateId dan version harus unik
+  @@index([aggregateId, version])  // Index sesuai permintaan dokumen
+  @@index([eventType])             // Index sesuai permintaan dokumen
+  @@index([timestamp])             // Index sesuai permintaan dokumen
+  
+  @@map("event_logs") // Nama tabel di database
 }
 
 model Ledger {
   id        String   @id @default(uuid())
-  orderId   String
-  account   String
-  debit     Decimal? @db.Decimal(18, 4) 
-  credit    Decimal? @db.Decimal(18, 4) 
+  orderId   String   // Foreign key bayangan ke pesanan
+  account   String   // Contoh: "order_balance", "payment", "fees", "payout"
+  debit     Decimal? @db.Decimal(18, 4) // Presisi sangat ketat sesuai permintaan
+  credit    Decimal? @db.Decimal(18, 4) // Presisi sangat ketat sesuai permintaan
   timestamp DateTime @default(now())
 
-  @@map("ledgers")
+  @@map("ledgers") // Nama tabel di database
 }

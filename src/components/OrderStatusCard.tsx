@@ -12,9 +12,10 @@ export default function OrderStatusCard({ events }: { events: EventLog[] }) {
   let isPaid = false;
 
   events.forEach((event) => {
-    if (event.eventType === 'OrderCreated') amount = parseFloat(event.payload.amount);
+    // Memberikan nilai fallback '0' agar TypeScript yakin parseFloat selalu menerima string
+    if (event.eventType === 'OrderCreated') amount = parseFloat(event.payload.amount || '0');
     if (event.eventType === 'PaymentConfirmed') isPaid = true;
-    if (event.eventType === 'FeeCalculated') fee = parseFloat(event.payload.feeAmount);
+    if (event.eventType === 'FeeCalculated') fee = parseFloat(event.payload.feeAmount || '0');
   });
 
   const payout = amount - fee;

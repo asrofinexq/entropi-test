@@ -20,8 +20,10 @@ If not:
 JavaScript's `Number` type is IEEE 754 floating-point:
 
 ```javascript
+//  WRONG
 0.1 + 0.2 = 0.30000000000000004
 
+//  FINANCIAL DISASTER
 10 × $0.03 = $0.30000000000000004
 $999,999.99 + $0.01 = $1,000,000.00000000001
 ```
@@ -45,6 +47,7 @@ Stored in database:
 ```typescript
 import Decimal from 'decimal.js';
 
+// ✅ CORRECT
 const a = new Decimal('0.1');
 const b = new Decimal('0.2');
 const c = a.plus(b);

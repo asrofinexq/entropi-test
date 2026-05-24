@@ -97,7 +97,7 @@ fastify.get('/orders/:id', async (request, reply) => {
 fastify.get('/orders/:id/ledger', async (request, reply) => {
   const { id: orderId } = request.params as { id: string };
   try {
-    const ledgers = await prisma.ledgerEntry.findMany({
+    const ledgers = await prisma.ledger.findMany({
       where: { orderId },
       orderBy: { timestamp: 'asc' }
     });

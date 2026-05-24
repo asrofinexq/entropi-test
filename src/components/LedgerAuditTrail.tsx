@@ -1,10 +1,8 @@
-// src/components/LedgerAuditTrail.tsx
 import { LedgerEntry } from '@/types';
 
 export default function LedgerAuditTrail({ ledgers }: { ledgers: LedgerEntry[] }) {
   if (!ledgers || ledgers.length === 0) return null;
 
-  // Calculate running balance
   let runningBalance = 0;
   const ledgersWithBalance = ledgers.map((entry) => {
     const debit = entry.debit ? parseFloat(entry.debit) : 0;
@@ -16,7 +14,6 @@ export default function LedgerAuditTrail({ ledgers }: { ledgers: LedgerEntry[] }
     };
   });
 
-  // Calculate totals
   const totalDebits = ledgers.reduce((sum, e) => {
     return sum + (e.debit ? parseFloat(e.debit) : 0);
   }, 0);

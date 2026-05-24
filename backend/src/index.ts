@@ -61,9 +61,7 @@ fastify.post('/orders/:id/pay', async (request, reply) => {
 
   try {
     const stripeResponse = await processPayment(orderId, amount, customerId);
-
     const paymentEvent = await recordPayment(orderId, amount, stripeResponse.chargeId, idempotencyKey);
-
     const feeEvent = await calculateFees(orderId, amount, `fee-${idempotencyKey}`);
 
     return reply.status(200).send({ paymentEvent, feeEvent });
@@ -99,7 +97,7 @@ fastify.get('/orders/:id', async (request, reply) => {
 fastify.get('/orders/:id/ledger', async (request, reply) => {
   const { id: orderId } = request.params as { id: string };
   try {
-    const ledgers = await prisma.ledger.findMany({
+    const ledgers = await prisma.ledgerEntry.findMany({
       where: { orderId },
       orderBy: { timestamp: 'asc' }
     });
@@ -144,9 +142,25 @@ fastify.post('/settle', async (request, reply) => {
   }
 });
 
+// ==========================================
+// RUTE 7: GET /orders (Mengambil Daftar Pesanan)
+// ==========================================
+fastify.get('/orders', async (request, reply) => {
+  try {
+    const orders = await prisma.order.findMany({
+      take: 20, // Mengambil 20 pesanan terakhir
+      // Hapus baris orderBy di bawah ini jika schema Order Anda tidak memiliki kolom id
+      orderBy: { id: 'desc' } 
+    });
+    return reply.status(200).send({ success: true, orders });
+  } catch (error: any) {
+    fastify.log.error(error);
+    return reply.status(500).send({ error: 'Internal Server Error' });
+  }
+});
+
 const start = async () => {
   try {
-    // Railway akan memberikan port secara dinamis melalui process.env.PORT
     const port = Number(process.env.PORT) || 8080;
     await fastify.listen({ port: port, host: '0.0.0.0' });
     console.log(`Server Backend berjalan di port ${port}`);

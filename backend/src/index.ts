@@ -142,32 +142,31 @@ fastify.post('/settle', async (request, reply) => {
   }
 });
 
+
 // ==========================================
-// RUTE 7: GET /orders (Mengambil Daftar Pesanan)
+// RUTE 7: GET /orders (Mengambil Daftar Pesanan dari EventLog)
 // ==========================================
 fastify.get('/orders', async (request, reply) => {
   try {
-    const orders = await prisma.order.findMany({
-      take: 20, // Mengambil 20 pesanan terakhir
-      // Hapus baris orderBy di bawah ini jika schema Order Anda tidak memiliki kolom id
-      orderBy: { id: 'desc' } 
+    // Mencari 20 pesanan terakhir yang pernah dibuat
+    const orderEvents = await prisma.eventLog.findMany({
+      where: { eventType: 'OrderCreated' },
+      orderBy: { timestamp: 'desc' },
+      take: 20
     });
+
+    // Mengubah format data agar sesuai dengan tabel di Frontend
+    const orders = orderEvents.map((event) => ({
+      id: event.aggregateId,
+      // Default ke 0, status lunas akan dicek akurat saat pesanan diklik
+      payment_received: 0 
+    }));
+
     return reply.status(200).send({ success: true, orders });
   } catch (error: any) {
     fastify.log.error(error);
     return reply.status(500).send({ error: 'Internal Server Error' });
   }
 });
-
-const start = async () => {
-  try {
-    const port = Number(process.env.PORT) || 8080;
-    await fastify.listen({ port: port, host: '0.0.0.0' });
-    console.log(`Server Backend berjalan di port ${port}`);
-  } catch (err) {
-    fastify.log.error(err);
-    process.exit(1);
-  }
-};
 
 start();

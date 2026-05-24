@@ -91,7 +91,7 @@ describe('Financial Event Service API Tests', () => {
   });
 
   it('Riwayat kejadian (Event Sourcing) harus memiliki versi yang berurutan secara konsisten', async () => {
-    const response = await request.get(`/orders/${orderId}`); // Menarik riwayat dari Skenario 1 & 3
+    const response = await request.get(`/orders/${orderId}`); 
 
     expect(response.status).toBe(200);
     const events = response.body;

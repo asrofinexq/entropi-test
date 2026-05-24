@@ -25,20 +25,16 @@ T5                           CHARGE $100 ❌ [DUPLICATE]
 **Solution**: Idempotency Key + Unique Constraint
 
 ```typescript
-// Database constraint
 UNIQUE(idempotencyKey)
 
-// Application logic
 const existing = await db.financialEvent.findUnique({
   where: { idempotencyKey }
 });
 
 if (existing) {
-  // Already processed—return cached result
   return existing;
 }
 
-// New request—process uniquely
 const event = await db.financialEvent.create({
   data: { idempotencyKey, ... }
 });
@@ -70,12 +66,10 @@ const nextVersion = order.version + 1;
 const event = await db.financialEvent.create({
   data: {
     aggregateId: orderId,
-    version: nextVersion,  // ← Unique constraint enforces this
+    version: nextVersion,  
     ...
   }
 });
-// If version already exists: UNIQUE constraint error
-// Application retries and gets new version number
 ```
 
 **Why it works**:

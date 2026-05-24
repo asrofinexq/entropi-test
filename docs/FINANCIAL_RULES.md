@@ -20,10 +20,8 @@ If not:
 JavaScript's `Number` type is IEEE 754 floating-point:
 
 ```javascript
-// ❌ WRONG
 0.1 + 0.2 = 0.30000000000000004
 
-// 💰 FINANCIAL DISASTER
 10 × $0.03 = $0.30000000000000004
 $999,999.99 + $0.01 = $1,000,000.00000000001
 ```
@@ -47,25 +45,20 @@ Stored in database:
 ```typescript
 import Decimal from 'decimal.js';
 
-// ✅ CORRECT
 const a = new Decimal('0.1');
 const b = new Decimal('0.2');
 const c = a.plus(b);
-console.log(c.toString());  // '0.3'
+console.log(c.toString());  
 
-// ✅ NO ROUNDING ERRORS
-new Decimal('0.01').times(3).toString();  // '0.03' (not '0.030000000000000001')
+new Decimal('0.01').times(3).toString();  
 
-// ✅ PRECISE CALCULATIONS
 const amount = new Decimal('100.00');
-const fee = amount.times('0.03');  // $3.00 (not $3.00000000000000002)
-const payout = amount.minus(fee);  // $97.00
+const fee = amount.times('0.03');  
+const payout = amount.minus(fee);  
 
-// ✅ DATABASE STORAGE
 await db.ledger.create({
   data: {
     amount: new Decimal('99.99'),
-    // Stored as: 999900 (integer in database)
   }
 });
 ```
@@ -100,7 +93,6 @@ For payment of $100:
 ### Rule 3: Exactly ONE of debit/credit is non-null
 
 ```sql
--- Database constraint
 ALTER TABLE "Ledger" 
 ADD CONSTRAINT check_exactly_one_debit_or_credit
 CHECK (
@@ -108,13 +100,11 @@ CHECK (
   (debit IS NULL AND credit IS NOT NULL)
 );
 
--- Verify
 SELECT * FROM "Ledger"
 WHERE NOT (
   (debit IS NOT NULL AND credit IS NULL) OR 
   (debit IS NULL AND credit IS NOT NULL)
 );
--- Should return 0 rows
 ```
 
 ## Account Types
@@ -288,7 +278,6 @@ Accounts:
 ### Query to Verify Order Balance
 
 ```sql
--- For single order
 SELECT 
   'order_balance' as account,
   SUM(CASE WHEN debit IS NOT NULL THEN debit ELSE 0 END)::NUMERIC(18,4) as total_debits,
@@ -315,14 +304,12 @@ GROUP BY account;
 ### Query for Total Ledger Balance
 
 ```sql
--- Verify total ledger balance = 0
 SELECT 
   (SUM(CASE WHEN debit IS NOT NULL THEN debit ELSE 0 END) - 
    SUM(CASE WHEN credit IS NOT NULL THEN credit ELSE 0 END))::NUMERIC(18,4) as total_balance
 FROM "Ledger"
 WHERE DATE(timestamp) = CURRENT_DATE;
 
--- Should return: 0.0000
 ```
 
 ### Imbalance Detection Alert
@@ -340,17 +327,14 @@ async function checkLedgerHealth() {
   const balance = new Decimal(result[0].balance);
   
   if (!balance.equals(0)) {
-    // 🚨 CRITICAL ALERT
     console.error(`❌ LEDGER IMBALANCE DETECTED: ${balance}`);
     
-    // Send alert to ops team
     await alertOps({
       severity: 'CRITICAL',
       message: `Ledger imbalance: ${balance}`,
       timestamp: new Date()
     });
     
-    // Stop all mutations
     process.exit(1);
   }
   
@@ -376,14 +360,11 @@ Examples:
 ### Edge Case: Fractional Cents
 
 ```typescript
-// Using banker's rounding (round half to even)
 const amount = new Decimal('10.00');
 const fee = amount.times('0.03');  // $0.30
 
-// Alternative: always round up (favor platform)
 const feeRoundUp = amount.times('0.03').toDecimalPlaces(4, Decimal.ROUND_UP);
 
-// Implement: banker's rounding (standard)
 const fee = amount.times('0.03').toDecimalPlaces(4, Decimal.ROUND_HALF_UP);
 ```
 
@@ -403,7 +384,6 @@ const fee = amount.times('0.03').toDecimalPlaces(4, Decimal.ROUND_HALF_UP);
 ### Settlement Idempotency
 
 ```typescript
-// Ensure settlement can't run twice for same date
 
 const existing = await db.financialEvent.findUnique({
   where: {
@@ -412,11 +392,9 @@ const existing = await db.financialEvent.findUnique({
 });
 
 if (existing) {
-  // Already settled today
   return existing;
 }
 
-// New settlement
 const settlement = await db.financialEvent.create({
   data: {
     eventType: 'SettlementProcessed',
@@ -430,7 +408,6 @@ const settlement = await db.financialEvent.create({
 
 ```typescript
 async function verifySettlementAmount(date: Date) {
-  // Calculate expected payout
   const orders = await db.order.findMany({
     where: {
       settledAt: null,
@@ -446,7 +423,6 @@ async function verifySettlementAmount(date: Date) {
     expectedPayout = expectedPayout.plus(payout);
   }
   
-  // Verify against settlement event
   const settlement = await db.financialEvent.findFirst({
     where: {
       eventType: 'SettlementProcessed',
@@ -499,20 +475,17 @@ Order status: REFUNDED
 
 ```typescript
 async function recordRefund(orderId: string, idempotencyKey: string) {
-  // Check if already refunded
   const existing = await db.financialEvent.findUnique({
     where: { idempotencyKey }
   });
   
   if (existing) return existing;
   
-  // Cannot refund twice
   const order = await db.order.findUnique({ where: { id: orderId } });
   if (order.status === 'REFUNDED') {
     throw new Error('Already refunded');
   }
   
-  // ... proceed with refund
 }
 ```
 
@@ -524,33 +497,30 @@ Every financial event must record:
 
 ```typescript
 interface FinancialEvent {
-  id: string;                    // Unique ID
-  aggregateId: string;           // Which order
-  eventType: string;             // What happened
-  payload: Record<string, any>;  // Details
-  version: number;               // Sequence
-  timestamp: Date;               // When (UTC)
-  idempotencyKey: string;        // Deduplication
-  userId?: string;               // Who (if admin action)
+  id: string;                    
+  aggregateId: string;           
+  eventType: string;             
+  payload: Record<string, any>;  
+  version: number;               
+  timestamp: Date;               
+  idempotencyKey: string;        
+  userId?: string;               
 }
 ```
 
 ### Compliance Queries
 
 ```sql
--- All transactions for specific customer
 SELECT * FROM "EventLog"
 WHERE aggregateId IN (
   SELECT id FROM "Order" WHERE customerId = 'cust_123'
 )
 ORDER BY timestamp DESC;
 
--- All transactions in date range
 SELECT * FROM "EventLog"
 WHERE timestamp BETWEEN '2026-05-24' AND '2026-05-25'
 ORDER BY timestamp DESC;
 
--- All payment-related events
 SELECT * FROM "EventLog"
 WHERE eventType IN ('PaymentConfirmed', 'RefundConfirmed', 'PaymentFailed')
 ORDER BY timestamp DESC;
@@ -559,19 +529,16 @@ ORDER BY timestamp DESC;
 ### Chargeback Handling
 
 ```typescript
-// When Stripe reports chargeback
 async function recordChargeback(orderId: string, amount: Decimal, chargebackId: string) {
-  // Create chargeback event
   await db.financialEvent.create({
     data: {
       aggregateId: orderId,
       eventType: 'ChargebackInitiated',
       payload: { amount: amount.toString(), chargebackId },
-      idempotencyKey: chargebackId  // Stripe ID is unique
+      idempotencyKey: chargebackId  
     }
   });
   
-  // Ledger: reverse payment
   await db.ledger.createMany({
     data: [
       { orderId, account: 'payment_received', credit: amount },
@@ -579,7 +546,6 @@ async function recordChargeback(orderId: string, amount: Decimal, chargebackId: 
     ]
   });
   
-  // Update order
   await db.order.update({
     where: { id: orderId },
     data: {
@@ -611,7 +577,6 @@ describe('Financial Precision', () => {
       expect(fee.toString()).toBe(test.expectedFee);
       expect(payout.toString()).toBe(test.expectedPayout);
       
-      // Verify balance
       expect(fee.plus(payout).toString()).toBe(test.amount);
     }
   });

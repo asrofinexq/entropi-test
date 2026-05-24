@@ -65,11 +65,11 @@ export default function LedgerAuditTrail({ ledgers }: { ledgers: LedgerEntry[] }
           <thead>
             <tr className="bg-gray-100 text-gray-700 text-xs font-bold border-b-2 border-gray-300">
               <th className="p-4 whitespace-nowrap">NO</th>
-              <th className="p-4 whitespace-nowrap">WAKTU (UTC)</th>
+              <th className="p-4 whitespace-nowrap">WAKTU (WIB)</th>
               <th className="p-4">AKUN</th>
               <th className="p-4 text-right">DEBIT</th>
               <th className="p-4 text-right">KREDIT</th>
-              <th className="p-4 text-right font-bold">SALDO LARI</th>
+              <th className="p-4 text-right font-bold">SALDO</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">

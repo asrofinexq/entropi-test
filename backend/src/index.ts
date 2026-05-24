@@ -18,9 +18,7 @@ fastify.register(cors, {
   origin: '*'
 });
 
-// ==========================================
-// RUTE 1: POST /orders (Membuat Pesanan)
-// ==========================================
+
 fastify.post('/orders', async (request, reply) => {
   const { orderId, amount, idempotencyKey } = request.body as {
     orderId: string;
@@ -44,9 +42,7 @@ fastify.post('/orders', async (request, reply) => {
   }
 });
 
-// ==========================================
-// RUTE 2: POST /orders/:id/pay (Membayar Pesanan)
-// ==========================================
+
 fastify.post('/orders/:id/pay', async (request, reply) => {
   const { id: orderId } = request.params as { id: string };
   const { amount, customerId, idempotencyKey } = request.body as {
@@ -74,9 +70,7 @@ fastify.post('/orders/:id/pay', async (request, reply) => {
   }
 });
 
-// ==========================================
-// RUTE 3: GET /orders/:id (Melihat Status Pesanan)
-// ==========================================
+
 fastify.get('/orders/:id', async (request, reply) => {
   const { id: orderId } = request.params as { id: string };
   try {
@@ -91,9 +85,7 @@ fastify.get('/orders/:id', async (request, reply) => {
   }
 });
 
-// ==========================================
-// RUTE 4: GET /orders/:id/ledger (Melihat Audit Buku Besar)
-// ==========================================
+
 fastify.get('/orders/:id/ledger', async (request, reply) => {
   const { id: orderId } = request.params as { id: string };
   try {
@@ -108,9 +100,7 @@ fastify.get('/orders/:id/ledger', async (request, reply) => {
   }
 });
 
-// ==========================================
-// RUTE 5: GET /verify-ledger/:id (Memverifikasi Keseimbangan)
-// ==========================================
+
 fastify.get('/verify-ledger/:id', async (request, reply) => {
   const { id: orderId } = request.params as { id: string };
   try {
@@ -122,9 +112,7 @@ fastify.get('/verify-ledger/:id', async (request, reply) => {
   }
 });
 
-// ==========================================
-// RUTE 6: POST /settle (Pencairan Dana Harian)
-// ==========================================
+
 fastify.post('/settle', async (request, reply) => {
   const { date, idempotencyKey } = request.body as { date: string; idempotencyKey: string; };
 
@@ -143,22 +131,17 @@ fastify.post('/settle', async (request, reply) => {
 });
 
 
-// ==========================================
-// RUTE 7: GET /orders (Mengambil Daftar Pesanan dari EventLog)
-// ==========================================
+
 fastify.get('/orders', async (request, reply) => {
   try {
-    // Mencari 20 pesanan terakhir yang pernah dibuat
     const orderEvents = await prisma.eventLog.findMany({
       where: { eventType: 'OrderCreated' },
       orderBy: { timestamp: 'desc' },
       take: 20
     });
 
-    // Mengubah format data agar sesuai dengan tabel di Frontend
     const orders = orderEvents.map((event) => ({
       id: event.aggregateId,
-      // Default ke 0, status lunas akan dicek akurat saat pesanan diklik
       payment_received: 0 
     }));
 
@@ -170,7 +153,6 @@ fastify.get('/orders', async (request, reply) => {
 });
 const start = async () => {
   try {
-    // Railway akan memberikan port secara dinamis
     const port = Number(process.env.PORT) || 8080;
     await fastify.listen({ port: port, host: '0.0.0.0' });
     console.log(`Server Backend berjalan di port ${port}`);

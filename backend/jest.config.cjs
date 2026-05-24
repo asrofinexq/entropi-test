@@ -1,8 +1,8 @@
 /** @type {import('ts-jest').JestConfigWithTsJest} */
 module.exports = {
-  preset: 'ts-jest/presets/default-esm', // Menggunakan preset khusus ESM
+  preset: 'ts-jest/presets/default-esm', 
   testEnvironment: 'node',
-  extensionsToTreatAsEsm: ['.ts'], // Memberi tahu Jest bahwa .ts adalah modul modern
+  extensionsToTreatAsEsm: ['.ts'], 
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
@@ -10,7 +10,7 @@ module.exports = {
     '^.+\\.ts$': [
       'ts-jest',
       {
-        useESM: true, // Memaksa ts-jest menerjemahkan menggunakan mode ESM
+        useESM: true, 
       },
     ],
   },

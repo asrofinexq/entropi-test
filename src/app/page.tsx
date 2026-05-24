@@ -1,4 +1,3 @@
-// src/app/page.tsx
 "use client";
 import { useState, useEffect } from 'react';
 import OrderStatusCard from '@/components/OrderStatusCard';
@@ -6,7 +5,6 @@ import LedgerAuditTrail from '@/components/LedgerAuditTrail';
 import OrderList from '@/components/OrderList';
 import { EventLog, LedgerEntry } from '@/types';
 
-// Tipe data tambahan untuk daftar order
 interface OrderData {
   id: string;
   payment_received?: string | number | null;
@@ -22,10 +20,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // 1. Ambil daftar pesanan saat halaman pertama kali dimuat
   useEffect(() => {
     fetchAllOrders();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchAllOrders = async () => {
@@ -35,7 +31,6 @@ export default function Dashboard() {
       if (data.success && data.orders && data.orders.length > 0) {
         setOrders(data.orders);
         
-        // FITUR BARU: Otomatis langsung membuka pesanan urutan pertama (terbaru)
         if (!selectedOrderId) {
           fetchOrderData(data.orders[0].id);
         }
@@ -45,13 +40,12 @@ export default function Dashboard() {
     }
   };
 
-  // 2. Ambil detail pesanan (Event Sourcing & Ledger)
   const fetchOrderData = async (id: string) => {
     if (!id) return;
     setLoading(true);
     setError('');
     setSelectedOrderId(id);
-    setOrderIdInput(id); // Sinkronkan dengan input bar
+    setOrderIdInput(id); 
 
     try {
       const resEvents = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${id}`);

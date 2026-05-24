@@ -131,7 +131,6 @@ fastify.post('/settle', async (request, reply) => {
 });
 
 
-
 fastify.get('/orders', async (request, reply) => {
   try {
     const orderEvents = await prisma.eventLog.findMany({
@@ -140,9 +139,20 @@ fastify.get('/orders', async (request, reply) => {
       take: 20
     });
 
+    const orderIds = orderEvents.map(e => e.aggregateId);
+
+    const paymentEvents = await prisma.eventLog.findMany({
+      where: {
+        aggregateId: { in: orderIds },
+        eventType: 'PaymentConfirmed'
+      }
+    });
+
+    const paidOrderIds = new Set(paymentEvents.map(e => e.aggregateId));
+
     const orders = orderEvents.map((event) => ({
       id: event.aggregateId,
-      payment_received: 0 
+      payment_received: paidOrderIds.has(event.aggregateId) ? 1 : 0 
     }));
 
     return reply.status(200).send({ success: true, orders });
@@ -151,6 +161,7 @@ fastify.get('/orders', async (request, reply) => {
     return reply.status(500).send({ error: 'Internal Server Error' });
   }
 });
+
 const start = async () => {
   try {
     const port = Number(process.env.PORT) || 8080;

@@ -168,5 +168,16 @@ fastify.get('/orders', async (request, reply) => {
     return reply.status(500).send({ error: 'Internal Server Error' });
   }
 });
+const start = async () => {
+  try {
+    // Railway akan memberikan port secara dinamis
+    const port = Number(process.env.PORT) || 8080;
+    await fastify.listen({ port: port, host: '0.0.0.0' });
+    console.log(`Server Backend berjalan di port ${port}`);
+  } catch (err) {
+    fastify.log.error(err);
+    process.exit(1);
+  }
+};
 
 start();
